@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "Helloesp",
+			"path": "../Helloesp"
+		},
+		{
+			"name": "micro-cnn",
+			"path": "."
+		}
+	],
+	"settings": {}
+}
