@@ -20,6 +20,7 @@ extern "C" {
 
 int esp_cli_init();
 int esp_cli_register_cmds();
+int inference_handler(int argc);
 
 #ifdef __cplusplus
 }

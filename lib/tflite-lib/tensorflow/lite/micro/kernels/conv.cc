@@ -134,7 +134,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TfLiteRegistration Register_CONV_2D() {
+TfLiteRegistration Register_CONV_2Do() {
   return tflite::micro::RegisterOp(Init, ConvPrepare, Eval);
 }
 

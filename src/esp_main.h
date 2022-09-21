@@ -16,7 +16,7 @@
 #define CLI_ONLY_INFERENCE 1
 
 // Enable this to get cpu stats
-#define COLLECT_CPU_STATS 1
+#define COLLECT_CPU_STATS 0
 
 #if !defined(CLI_ONLY_INFERENCE)
 // Enable this for display

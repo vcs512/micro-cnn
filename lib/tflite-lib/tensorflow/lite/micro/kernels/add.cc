@@ -30,7 +30,7 @@ limitations under the License.
 
 namespace tflite {
 
-void EvalAdd(TfLiteContext* context, TfLiteNode* node, TfLiteAddParams* params,
+void EvalAddo(TfLiteContext* context, TfLiteNode* node, TfLiteAddParams* params,
              const OpDataAdd* data, const TfLiteEvalTensor* input1,
              const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
   tflite::ArithmeticParams op_params;
@@ -54,7 +54,7 @@ void EvalAdd(TfLiteContext* context, TfLiteNode* node, TfLiteAddParams* params,
   }
 }
 
-TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
+TfLiteStatus EvalAddQuantizedo(TfLiteContext* context, TfLiteNode* node,
                               TfLiteAddParams* params, const OpDataAdd* data,
                               const TfLiteEvalTensor* input1,
                               const TfLiteEvalTensor* input2,
@@ -145,9 +145,9 @@ TfLiteStatus AddEval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kAddOutputTensor);
 
   if (output->type == kTfLiteFloat32) {
-    EvalAdd(context, node, params, data, input1, input2, output);
+    EvalAddo(context, node, params, data, input1, input2, output);
   } else if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
-    TF_LITE_ENSURE_OK(context, EvalAddQuantized(context, node, params, data,
+    TF_LITE_ENSURE_OK(context, EvalAddQuantizedo(context, node, params, data,
                                                 input1, input2, output));
   } else {
     MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(output->type),
@@ -158,7 +158,7 @@ TfLiteStatus AddEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_ADD() {
+TfLiteRegistration Register_ADDo() {
   return tflite::micro::RegisterOp(AddInit, AddPrepare, AddEval);
 }
 
