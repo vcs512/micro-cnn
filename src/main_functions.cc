@@ -18,7 +18,6 @@ limitations under the License.
 #include "main_functions.h"
 
 #include "detection_responder.h"
-#include "image_provider.h"
 #include "model_settings.h"
 #include "person_detect_model_data.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
@@ -35,40 +34,31 @@ limitations under the License.
 #include <esp_log.h>
 #include "esp_main.h"
 
-// Globals, used for compatibility with Arduino-style sketches.
+// Globals
 namespace {
 tflite::ErrorReporter* error_reporter = nullptr;
 const tflite::Model* model = nullptr;
 tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* input = nullptr;
 
-// In order to use optimized tensorflow lite kernels, a signed int8_t quantized
-// model is preferred over the legacy unsigned model format. This means that
-// throughout this project, input images must be converted from unisgned to
-// signed format. The easiest and quickest way to convert from unsigned to
-// signed 8-bit integers is to subtract 128 from the unsigned value to get a
-// signed value.
-
-#ifdef CONFIG_IDF_TARGET_ESP32S3
-constexpr int scratchBufSize = 39 * 1024;
-#else
-constexpr int scratchBufSize = 0;
-#endif
-// An area of memory to use for input, output, and intermediate arrays.
-constexpr int kTensorArenaSize = 150 * 1024 + scratchBufSize;
-static uint8_t *tensor_arena;//[kTensorArenaSize]; // Maybe we should move this to external
+// Memory for input, output and intermediate arrays:
+constexpr int kTensorArenaSize = 150 * 1024;
+static uint8_t *tensor_arena; //size: [kTensorArenaSize];
 }  // namespace
 
-// The name of this function is important for Arduino compatibility.
+
+
+// Get model
+// Alocate tensors in heap
+// Get interpreter class
 void setup() {
-  // Set up logging. Google style is to avoid globals or statics because of
-  // lifetime uncertainty, but since this has a trivial destructor it's okay.
-  // NOLINTNEXTLINE(runtime-global-variables)
   static tflite::MicroErrorReporter micro_error_reporter;
   error_reporter = &micro_error_reporter;
 
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
+
+  // Use int8 for input/output of models (better tensorflow optimization)
   model = tflite::GetModel(g_person_detect_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     TF_LITE_REPORT_ERROR(error_reporter,
@@ -78,22 +68,22 @@ void setup() {
     return;
   }
 
+  // prevent heap exploding
   if (tensor_arena == NULL) {
     tensor_arena = (uint8_t *) heap_caps_malloc(kTensorArenaSize, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
   }
   if (tensor_arena == NULL) {
-    printf("Couldn't allocate memory of %d bytes\n", kTensorArenaSize);
+    printf("malloc FAILED\n -Could NOT allocate memory of %d bytes\n", kTensorArenaSize);
     return;
   }
 
-  // Pull in only the operation implementations we need.
-  // This relies on a complete list of all the ops needed by this graph.
-  // An easier approach is to just use the AllOpsResolver, but this will
-  // incur some penalty in code space for op implementations that are not
-  // needed by this graph.
-  //
+
+  // // AllOpsResolver: use full tflite lib
+        // - too much code momery
+        // - no need to select operations manually
   // tflite::AllOpsResolver micro_op_resolver;
-  // NOLINTNEXTLINE(runtime-global-variables)
+
+  // Save code memory choosing what to include
   static tflite::MicroMutableOpResolver<9> micro_op_resolver;
   micro_op_resolver.AddConv2D();
   micro_op_resolver.AddDepthwiseConv2D();
@@ -105,13 +95,13 @@ void setup() {
   micro_op_resolver.AddLogistic();
   micro_op_resolver.AddQuantize();
 
-  // Build an interpreter to run the model with.
-  // NOLINTNEXTLINE(runtime-global-variables)
+  // Build an interpreter to run the model
   static tflite::MicroInterpreter static_interpreter(
       model, micro_op_resolver, tensor_arena, kTensorArenaSize, error_reporter);
   interpreter = &static_interpreter;
 
-  // Allocate memory from the tensor_arena for the model's tensors.
+  // Allocate memory from the tensor_arena for the model's tensors
+  // Beware of heap explosion
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
   if (allocate_status != kTfLiteOk) {
     TF_LITE_REPORT_ERROR(error_reporter, "AllocateTensors() failed");
@@ -120,48 +110,10 @@ void setup() {
 
   // Get information about the memory area to use for the model's input.
   input = interpreter->input(0);
-
-#ifndef CLI_ONLY_INFERENCE
-  // Initialize Camera
-  TfLiteStatus init_status = InitCamera(error_reporter);
-  if (init_status != kTfLiteOk) {
-    TF_LITE_REPORT_ERROR(error_reporter, "InitCamera failed\n");
-    return;
-  }
-#endif
 }
 
-#ifndef CLI_ONLY_INFERENCE
-// The name of this function is important for Arduino compatibility.
-void loop() {
-  // Get image from provider.
-  if (kTfLiteOk != GetImage(error_reporter, kNumCols, kNumRows, kNumChannels,
-                            input->data.int8)) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Image capture failed.");
-  }
 
-  // Run the model on this input and make sure it succeeds.
-  if (kTfLiteOk != interpreter->Invoke()) {
-    TF_LITE_REPORT_ERROR(error_reporter, "Invoke failed.");
-  }
-
-  TfLiteTensor* output = interpreter->output(0);
-
-  // Process the inference results.
-  int8_t person_score = output->data.uint8[kPersonIndex];
-  int8_t no_person_score = output->data.uint8[kNotAPersonIndex];
-
-  float person_score_f =
-      (person_score - output->params.zero_point) * output->params.scale;
-  float no_person_score_f =
-      (no_person_score - output->params.zero_point) * output->params.scale;
-
-  // Respond to detection
-  RespondToDetection(error_reporter, person_score_f, no_person_score_f);
-  vTaskDelay(1); // to avoid watchdog trigger
-}
-#endif
-
+// profiling vars
 #if defined(COLLECT_CPU_STATS)
   long long total_time = 0;
   long long start_time = 0;
@@ -175,7 +127,8 @@ void loop() {
 #endif
 
 void run_inference(void *ptr) {
-  /* Convert from uint8 picture data to int8 */
+  //  image -> data 
+  //  uint8 -> int8
   for (int i = 0; i < kNumCols * kNumRows; i++) {
     input->data.int8[i] = ((uint8_t *) ptr)[i] ^ 0x80;
   }
@@ -191,7 +144,6 @@ void run_inference(void *ptr) {
 #if defined(COLLECT_CPU_STATS)
   long long total_time = (esp_timer_get_time() - start_time);
   printf("Total time = %lld\n", total_time / 1000);
-  //printf("Softmax time = %lld\n", softmax_total_time / 1000);
   printf("FC time = %lld\n", fc_total_time / 1000);
   printf("DC time = %lld\n", dc_total_time / 1000);
   printf("conv time = %lld\n", conv_total_time / 1000);
@@ -212,16 +164,19 @@ void run_inference(void *ptr) {
 
   TfLiteTensor* output = interpreter->output(0);
 
-  printf("\n== input size: %d", input->bytes);
-  printf("\n=== output size: %d  ", output->dims->size);
+  // // confere dimensions:
+  // printf("\n== input size: %d", input->bytes);
+  // printf("\n=== output size: %d  ", output->dims->size);
 
-  // Process the inference results.
+  // Get inference results:
   int8_t person_score = output->data.int8[kPersonIndex];
   int8_t no_person_score = output->data.int8[kNotAPersonIndex];
 
+  // float to show in terminal:
   float person_score_f =
       (person_score - output->params.zero_point) * output->params.scale;
   float no_person_score_f =
       (no_person_score - output->params.zero_point) * output->params.scale;
+
   RespondToDetection(error_reporter, person_score_f, no_person_score_f);
 }

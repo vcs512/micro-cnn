@@ -21,13 +21,11 @@ limitations under the License.
 extern "C" {
 #endif
 
-// Initializes all data needed for the example. The name is important, and needs
-// to be setup() for Arduino compatibility.
+// Initializes all data needed for the example.
+// Alocates heap
 void setup();
 
-// Runs one iteration of data gathering and inference. This should be called
-// repeatedly from the application code. The name needs to be loop() for Arduino
-// compatibility.
+// To implement: receive images continuously
 void loop();
 
 #ifdef __cplusplus

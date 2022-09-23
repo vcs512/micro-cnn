@@ -41,7 +41,7 @@ extern const uint8_t image1_start[]   asm("_binary_image1_start");
 // extern const uint8_t image8_start[]   asm("_binary_image8_start");
 // extern const uint8_t image9_start[]   asm("_binary_image9_start");
 
-static int stop;
+// static int stop;
 static const char *TAG = "[esp_cli]";
 
 // static int task_dump_cli_handler(int argc, char *argv[])
