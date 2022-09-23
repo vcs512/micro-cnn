@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <stdio.h>
+
 #include "main_functions.h"
 
 #include "detection_responder.h"
@@ -53,7 +55,7 @@ constexpr int scratchBufSize = 39 * 1024;
 constexpr int scratchBufSize = 0;
 #endif
 // An area of memory to use for input, output, and intermediate arrays.
-constexpr int kTensorArenaSize = 81 * 1024 + scratchBufSize;
+constexpr int kTensorArenaSize = 150 * 1024 + scratchBufSize;
 static uint8_t *tensor_arena;//[kTensorArenaSize]; // Maybe we should move this to external
 }  // namespace
 
@@ -92,12 +94,16 @@ void setup() {
   //
   // tflite::AllOpsResolver micro_op_resolver;
   // NOLINTNEXTLINE(runtime-global-variables)
-  static tflite::MicroMutableOpResolver<5> micro_op_resolver;
-  micro_op_resolver.AddAveragePool2D();
+  static tflite::MicroMutableOpResolver<9> micro_op_resolver;
   micro_op_resolver.AddConv2D();
   micro_op_resolver.AddDepthwiseConv2D();
   micro_op_resolver.AddReshape();
   micro_op_resolver.AddSoftmax();
+  micro_op_resolver.AddAveragePool2D();
+  micro_op_resolver.AddMaxPool2D();
+  micro_op_resolver.AddFullyConnected();
+  micro_op_resolver.AddLogistic();
+  micro_op_resolver.AddQuantize();
 
   // Build an interpreter to run the model with.
   // NOLINTNEXTLINE(runtime-global-variables)
@@ -206,9 +212,12 @@ void run_inference(void *ptr) {
 
   TfLiteTensor* output = interpreter->output(0);
 
+  printf("\n== input size: %d", input->bytes);
+  printf("\n=== output size: %d  ", output->dims->size);
+
   // Process the inference results.
-  int8_t person_score = output->data.uint8[kPersonIndex];
-  int8_t no_person_score = output->data.uint8[kNotAPersonIndex];
+  int8_t person_score = output->data.int8[kPersonIndex];
+  int8_t no_person_score = output->data.int8[kNotAPersonIndex];
 
   float person_score_f =
       (person_score - output->params.zero_point) * output->params.scale;

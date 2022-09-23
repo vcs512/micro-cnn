@@ -24,6 +24,7 @@ static QueueHandle_t xQueueLCDFrame = NULL;
 void RespondToDetection(tflite::ErrorReporter* error_reporter,
                         float person_score, float no_person_score) {
   int person_score_int = (person_score) * 100 + 0.5;
+
 #if DISPLAY_SUPPORT
   if (xQueueLCDFrame == NULL) {
     xQueueLCDFrame = xQueueCreate(2, sizeof(struct lcd_frame));
@@ -44,7 +45,7 @@ void RespondToDetection(tflite::ErrorReporter* error_reporter,
   xQueueSend(xQueueLCDFrame, &frame, portMAX_DELAY);
   (void) no_person_score;
 #else
-  TF_LITE_REPORT_ERROR(error_reporter, "person score:%d%%, no person score %d%%",
-                       person_score_int, 100 - person_score_int);
+  TF_LITE_REPORT_ERROR(error_reporter, "usable score %d%% - defect score:%d%%",
+                       100 - person_score_int, person_score_int);
 #endif
 }

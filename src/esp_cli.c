@@ -253,8 +253,7 @@ static void image_database_init()
 
 int inference_handler(int argc)
 {
-    /* Just to go to the next line */
-    printf("---Enetered-inference-h\n");
+
     image_database_init();
     // if (argc != 2) {
     //     printf("%s: Incorrect arguments\n", TAG);

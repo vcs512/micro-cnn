@@ -56,6 +56,9 @@ extern "C" void app_main() {
   inference_handler(9);
 
   inference_handler(0);
+  
+  printf("\n\n");
+  inference_handler(1);
 
   fflush(stdout);
 }
