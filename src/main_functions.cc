@@ -94,6 +94,8 @@ void setup() {
   micro_op_resolver.AddFullyConnected();
   micro_op_resolver.AddLogistic();
   micro_op_resolver.AddQuantize();
+  // micro_op_resolver.AddExpandDims();
+  // micro_op_resolver.Add
 
   // Build an interpreter to run the model
   static tflite::MicroInterpreter static_interpreter(
@@ -178,5 +180,8 @@ void run_inference(void *ptr) {
   float no_person_score_f =
       (no_person_score - output->params.zero_point) * output->params.scale;
 
-  RespondToDetection(error_reporter, person_score_f, no_person_score_f);
+  // printf("\n==person_score_f = %f", person_score_f);
+  printf("\n==(no_person_score_f) SAIDA = %f %%\n", no_person_score_f*100);
+
+  // RespondToDetection(error_reporter, person_score_f, no_person_score_f);
 }

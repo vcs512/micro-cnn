@@ -18,6 +18,8 @@ limitations under the License.
 #include "main_functions.h"
 #include "esp_log.h"
 #include "esp_system.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include "esp_main.h"
 
@@ -26,17 +28,53 @@ limitations under the License.
 #endif
 
 
-extern "C" void app_main() {
-
+// tflite task
+void tf_main(void) {
+  
+  printf("\n========== BEGINS TASK\n");
   setup();
   
-  printf("\n==========TESTE\n");
+  // vTaskDelay(portMAX_DELAY);
   inference_handler(9);
 
+  // vTaskDelay(portMAX_DELAY);
+  printf("\n========== image0\n");
+  inference_handler(0);
+  
+  // vTaskDelay(portMAX_DELAY);
+  printf("\n\n");
+  printf("\n========== image1\n");
+  inference_handler(1);
+
+  printf("\n\n======================== FINISHED TASK =========");
+  fflush(stdout);
+
+  vTaskDelay(portMAX_DELAY);
+}
+
+
+extern "C" void app_main() {
+
+  
+  printf("\n========== BEGINS TASK\n");
+  setup();
+  
+  inference_handler(9);
+
+  printf("\n========== image0\n");
   inference_handler(0);
   
   printf("\n\n");
+  printf("\n========== image1\n");
   inference_handler(1);
 
+  printf("\n\n======================== FINISHED TASK =========");
   fflush(stdout);
+
+  vTaskDelay(portMAX_DELAY);
+
+  //                            function, name,    stack size, -, priority
+  // xTaskCreate((TaskFunction_t)&tf_main, "tf_main", 4 * 1024, NULL, 8, NULL);
+  // vTaskDelete(NULL);
+
 }
