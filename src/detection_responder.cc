@@ -18,16 +18,19 @@ limitations under the License.
 
 void RespondToDetection(tflite::ErrorReporter* error_reporter,
                         float person_score, float no_person_score) {
-  int no_person_score_int = (no_person_score) * 100 + 0.5;
+  int person_score_int = (person_score) * 100 ;
+  int no_person_score_int = (no_person_score) * 100 ;
 
-//   TF_LITE_REPORT_ERROR(error_reporter,
-//                         "\nCLASS 0: usable score %d%%"
-//                         "\nCLASS 1: defect score:%d%%",
-//                         100 - person_score_int,
-//                         person_score_int);
+  TF_LITE_REPORT_ERROR(error_reporter,
+                        "\nCLASS 0: usable score %d%%"
+                        "\nCLASS 1: defect score:%d%%",
+                        100 - person_score_int,
+                        person_score_int);
 
 
   TF_LITE_REPORT_ERROR(error_reporter,
-                        "\nSaida = %f%%",
-                        no_person_score);                        
+                        "\nSaida = %d%%",
+                        no_person_score_int);                        
+
+
 }

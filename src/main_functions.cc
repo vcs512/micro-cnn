@@ -34,6 +34,8 @@ limitations under the License.
 #include <esp_log.h>
 #include "esp_main.h"
 
+#include "images.h"
+
 // Globals
 namespace {
 tflite::ErrorReporter* error_reporter = nullptr;
@@ -42,7 +44,7 @@ tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* input = nullptr;
 
 // Memory for input, output and intermediate arrays:
-constexpr int kTensorArenaSize = 150 * 1024;
+constexpr int kTensorArenaSize = 100 * 1024;
 static uint8_t *tensor_arena; //size: [kTensorArenaSize];
 }  // namespace
 
@@ -55,9 +57,7 @@ void setup() {
   static tflite::MicroErrorReporter micro_error_reporter;
   error_reporter = &micro_error_reporter;
 
-  // Map the model into a usable data structure. This doesn't involve any
-  // copying or parsing, it's a very lightweight operation.
-
+  // Map the model into a usable data structure.
   // Use int8 for input/output of models (better tensorflow optimization)
   model = tflite::GetModel(g_person_detect_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
@@ -79,7 +79,7 @@ void setup() {
 
 
   // // AllOpsResolver: use full tflite lib
-        // - too much code momery
+        // - too much code memory
         // - no need to select operations manually
   // tflite::AllOpsResolver micro_op_resolver;
 
@@ -94,6 +94,7 @@ void setup() {
   micro_op_resolver.AddFullyConnected();
   micro_op_resolver.AddLogistic();
   micro_op_resolver.AddQuantize();
+
   // micro_op_resolver.AddExpandDims();
   // micro_op_resolver.Add
 
@@ -115,54 +116,24 @@ void setup() {
 }
 
 
-// profiling vars
-#if defined(COLLECT_CPU_STATS)
-  long long total_time = 0;
-  long long start_time = 0;
-  extern long long softmax_total_time;
-  extern long long dc_total_time;
-  extern long long conv_total_time;
-  extern long long fc_total_time;
-  extern long long pooling_total_time;
-  extern long long add_total_time;
-  extern long long mul_total_time;
-#endif
-
 void run_inference(void *ptr) {
   //  image -> data 
   //  uint8 -> int8
   for (int i = 0; i < kNumCols * kNumRows; i++) {
-    input->data.int8[i] = ((uint8_t *) ptr)[i] ^ 0x80;
+    // input->data.int8[i] = ((uint8_t *) ptr)[i] ^ 0x80;
+    input->data.int8[i] = test_img[i] ^ 0x80;
+    if (i==0) {printf("\ninput 0 = %d", input->data.int8[i]);}
+    // input->data.int8[i] = 50 - 128;
+
+    // input->data.uint8[i] = ((uint8_t *) ptr)[i];
+    // input->data.uint8[i] = 50;
   }
 
-#if defined(COLLECT_CPU_STATS)
-  long long start_time = esp_timer_get_time();
-#endif
+
   // Run the model on this input and make sure it succeeds.
   if (kTfLiteOk != interpreter->Invoke()) {
     error_reporter->Report("Invoke failed.");
   }
-
-#if defined(COLLECT_CPU_STATS)
-  long long total_time = (esp_timer_get_time() - start_time);
-  printf("Total time = %lld\n", total_time / 1000);
-  printf("FC time = %lld\n", fc_total_time / 1000);
-  printf("DC time = %lld\n", dc_total_time / 1000);
-  printf("conv time = %lld\n", conv_total_time / 1000);
-  printf("Pooling time = %lld\n", pooling_total_time / 1000);
-  printf("add time = %lld\n", add_total_time / 1000);
-  printf("mul time = %lld\n", mul_total_time / 1000);
-
-  /* Reset times */
-  total_time = 0;
-  //softmax_total_time = 0;
-  dc_total_time = 0;
-  conv_total_time = 0;
-  fc_total_time = 0;
-  pooling_total_time = 0;
-  add_total_time = 0;
-  mul_total_time = 0;
-#endif
 
   TfLiteTensor* output = interpreter->output(0);
 
@@ -171,6 +142,8 @@ void run_inference(void *ptr) {
   // printf("\n=== output size: %d  ", output->dims->size);
 
   // Get inference results:
+  // uint8_t person_score = output->data.uint8[kPersonIndex];
+  // uint8_t no_person_score = output->data.uint8[kNotAPersonIndex];
   int8_t person_score = output->data.int8[kPersonIndex];
   int8_t no_person_score = output->data.int8[kNotAPersonIndex];
 
@@ -181,7 +154,11 @@ void run_inference(void *ptr) {
       (no_person_score - output->params.zero_point) * output->params.scale;
 
   // printf("\n==person_score_f = %f", person_score_f);
+  // printf("\n==(no_person_score_int) SAIDA = %d\n", no_person_score);
   printf("\n==(no_person_score_f) SAIDA = %f %%\n", no_person_score_f*100);
 
-  // RespondToDetection(error_reporter, person_score_f, no_person_score_f);
+  // printf("\n\n==(person_score_int) CLASSE_1 = %d\n", person_score);
+  printf("\n==(person_score_f) CLASSE_1 = %f %%\n", person_score_f*100);
+
+  RespondToDetection(error_reporter, person_score_f, no_person_score_f);
 }

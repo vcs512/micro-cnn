@@ -18,23 +18,9 @@ file(GLOB srcs_kernels
           "${tfmicro_kernels_dir}/*.c"
           "${tfmicro_kernels_dir}/*.cc")
 
-# remove sources which will be provided by esp_nn
-list(REMOVE_ITEM srcs_kernels
-          "${tfmicro_kernels_dir}/add.cc"
-          "${tfmicro_kernels_dir}/conv.cc"
-          "${tfmicro_kernels_dir}/depthwise_conv.cc"
-          "${tfmicro_kernels_dir}/fully_connected.cc"
-          "${tfmicro_kernels_dir}/mul.cc"
-          "${tfmicro_kernels_dir}/pooling.cc"
-          "${tfmicro_kernels_dir}/softmax.cc")
-
-FILE(GLOB esp_nn_kernels
-          "${tfmicro_kernels_dir}/esp_nn/*.cc")
-
 set(lib_srcs
           "${srcs_micro}"
           "${srcs_kernels}"
-          "${esp_nn_kernels}"
           "${src_micro_frontend}"
           "${tflite_dir}/kernels/kernel_util.cc"
           "${tflite_dir}/micro/memory_planner/greedy_memory_planner.cc"
@@ -51,11 +37,10 @@ set(lib_srcs
           "${tflite_dir}/kernels/internal/quantization_util.cc"
           "${tflite_dir}/schema/schema_utils.cc")
 
-set(priv_req esp-nn)
 
 # include component requirements which were introduced after IDF version 4.1
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER "4.1")
-    list(APPEND priv_req esp_timer driver)
+    list(APPEND esp_timer driver)
 endif()
 
 idf_component_register(
@@ -65,7 +50,7 @@ idf_component_register(
                          "third_party/ruy"
                          "third_party/kissfft"
             REQUIRES ${pub_req}
-            PRIV_REQUIRES ${priv_req})
+            )
 
 # Reduce the level of paranoia to be able to compile TF sources
 target_compile_options(${COMPONENT_LIB} PRIVATE
@@ -73,7 +58,6 @@ target_compile_options(${COMPONENT_LIB} PRIVATE
   -Wno-missing-field-initializers
   -Wno-error=sign-compare
   -Wno-error=double-promotion
-  -DESP_NN # enables ESP-NN optimizations by Espressif
   -Wno-type-limits)
 
 target_compile_options(${COMPONENT_LIB} PRIVATE -fno-unwind-tables -ffunction-sections -fdata-sections -fmessage-length=0 -DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON -O3 -Wsign-compare -Wdouble-promotion -Wshadow -Wunused-variable -Wmissing-field-initializers -Wunused-function -Wswitch -Wvla -Wall -Wextra -Wstrict-aliasing -Wno-unused-parameter -Wno-nonnull)

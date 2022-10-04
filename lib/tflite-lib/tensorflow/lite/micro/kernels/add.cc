@@ -158,7 +158,7 @@ TfLiteStatus AddEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteRegistration Register_ADDo() {
+TfLiteRegistration Register_ADD() {
   return tflite::micro::RegisterOp(AddInit, AddPrepare, AddEval);
 }
 
