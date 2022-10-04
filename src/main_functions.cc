@@ -35,6 +35,7 @@ limitations under the License.
 #include "esp_main.h"
 
 #include "images.h"
+#include "esp_cli.h"
 
 // Globals
 namespace {
@@ -84,18 +85,19 @@ void setup() {
   // tflite::AllOpsResolver micro_op_resolver;
 
   // Save code memory choosing what to include
-  static tflite::MicroMutableOpResolver<9> micro_op_resolver;
+  static tflite::MicroMutableOpResolver<5> micro_op_resolver;
   micro_op_resolver.AddConv2D();
-  micro_op_resolver.AddDepthwiseConv2D();
   micro_op_resolver.AddReshape();
-  micro_op_resolver.AddSoftmax();
-  micro_op_resolver.AddAveragePool2D();
-  micro_op_resolver.AddMaxPool2D();
-  micro_op_resolver.AddFullyConnected();
   micro_op_resolver.AddLogistic();
   micro_op_resolver.AddQuantize();
+  micro_op_resolver.AddFullyConnected();
 
+  // Can be added (tflite asks as runtime error):
+  // micro_op_resolver.AddDepthwiseConv2D();
   // micro_op_resolver.AddExpandDims();
+  // micro_op_resolver.AddAveragePool2D();
+  // micro_op_resolver.AddMaxPool2D();
+  // micro_op_resolver.AddSoftmax();
   // micro_op_resolver.Add
 
   // Build an interpreter to run the model
@@ -113,20 +115,23 @@ void setup() {
 
   // Get information about the memory area to use for the model's input.
   input = interpreter->input(0);
+
+  image_data_init();
 }
 
 
+// Get results from an input
 void run_inference(void *ptr) {
   //  image -> data 
   //  uint8 -> int8
   for (int i = 0; i < kNumCols * kNumRows; i++) {
     input->data.int8[i] = ((uint8_t *) ptr)[i] ^ 0x80;
+    
+    // PoC entries
     // input->data.int8[i] = test_img[i] ^ 0x80;
-    // if (i==0) {printf("\ninput 0 = %d", input->data.int8[i]);}
     // input->data.int8[i] = 50 - 128;
+    // if (i==0) {printf("\ninput 0 = %d", input->data.int8[i]);}
 
-    // input->data.uint8[i] = ((uint8_t *) ptr)[i];
-    // input->data.uint8[i] = 50;
   }
 
 
@@ -137,28 +142,19 @@ void run_inference(void *ptr) {
 
   TfLiteTensor* output = interpreter->output(0);
 
-  // // confere dimensions:
+  // // Dimensions:
   // printf("\n== input size: %d", input->bytes);
   // printf("\n=== output size: %d  ", output->dims->size);
 
   // Get inference results:
-  // uint8_t person_score = output->data.uint8[kPersonIndex];
-  // uint8_t no_person_score = output->data.uint8[kNotAPersonIndex];
-  int8_t person_score = output->data.int8[kPersonIndex];
-  int8_t no_person_score = output->data.int8[kNotAPersonIndex];
+  int8_t result_score = output->data.int8[0];
 
   // float to show in terminal:
-  float person_score_f =
-      (person_score - output->params.zero_point) * output->params.scale;
-  float no_person_score_f =
-      (no_person_score - output->params.zero_point) * output->params.scale;
+  float result_score_f =
+      (result_score - output->params.zero_point) * output->params.scale;
 
-  // printf("\n==person_score_f = %f", person_score_f);
-  // printf("\n==(no_person_score_int) SAIDA = %d\n", no_person_score);
-  printf("\n==(no_person_score_f) SAIDA = %f %%\n", no_person_score_f*100);
+  printf("\n== OUTPUT = %f %%", result_score_f*100);
 
-  // printf("\n\n==(person_score_int) CLASSE_1 = %d\n", person_score);
-  printf("\n==(person_score_f) CLASSE_1 = %f %%\n", person_score_f*100);
-
-  RespondToDetection(error_reporter, person_score_f, no_person_score_f);
+  // implement output
+  // RespondToDetection(error_reporter, result_score_f);
 }

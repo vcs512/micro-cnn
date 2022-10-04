@@ -13,19 +13,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+
+// PLACEHOLDER
+// implement output later: MQTT, Bluetooth
+
 #include "detection_responder.h"
 #include "esp_main.h"
 
 void RespondToDetection(tflite::ErrorReporter* error_reporter,
                         float person_score, float no_person_score) {
-  int person_score_int = (person_score) * 100 ;
+//   int person_score_int = (person_score) * 100 ;
   int no_person_score_int = (no_person_score) * 100 ;
 
-  TF_LITE_REPORT_ERROR(error_reporter,
-                        "\nCLASS 0: usable score %d%%"
-                        "\nCLASS 1: defect score:%d%%",
-                        100 - person_score_int,
-                        person_score_int);
+//   TF_LITE_REPORT_ERROR(error_reporter,
+//                         "\nCLASS 0: usable score %d%%"
+//                         "\nCLASS 1: defect score:%d%%",
+//                         100 - person_score_int,
+//                         person_score_int);
 
 
   TF_LITE_REPORT_ERROR(error_reporter,

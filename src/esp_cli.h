@@ -19,6 +19,7 @@ extern "C" {
 #endif
 
 int inference_handler(int argc);
+void image_data_init();
 
 #ifdef __cplusplus
 }

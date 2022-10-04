@@ -16,6 +16,6 @@ limitations under the License.
 #include "model_settings.h"
 
 const char* kCategoryLabels[kCategoryCount] = {
-    "notperson",
-    "person",
+    "CLASS_0",
+    "CLASS_1",
 };

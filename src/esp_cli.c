@@ -29,21 +29,18 @@
 #define IMAGE_COUNT 2
 static uint8_t *image_database[IMAGE_COUNT];
 
-
+// Assembly to refer to bin images in code memory
 extern const uint8_t image0_start[]   asm("_binary_image0_start");
 extern const uint8_t image1_start[]   asm("_binary_image1_start");
 
-
-static void image_database_init()
-{
+// Assign pointer to bin images
+static void image_database_init() {
     image_database[0] = (uint8_t *) image0_start;
     image_database[1] = (uint8_t *) image1_start;
 }
 
-int inference_handler(int argc)
-{
-
-    image_database_init();
+// Bridge to inference function and profiler
+int inference_handler(int argc) {
 
     int image_number = argc;
 
@@ -56,10 +53,18 @@ int inference_handler(int argc)
     unsigned detect_time;
     detect_time = esp_timer_get_time();
 
+    // calls tf inference (main_functions.cc)
     run_inference((void *)image_database[image_number]);
     
+    // get profiler results
     detect_time = (esp_timer_get_time() - detect_time)/1000;
-    printf("Time required for the inference is %u ms   ", detect_time);
+    printf("\nTime required for the inference is %u ms \n\n", detect_time);
 
     return 0;
+}
+
+
+// Inits image database
+void image_data_init() {
+    image_database_init();
 }
