@@ -22,10 +22,7 @@ limitations under the License.
 #include "freertos/task.h"
 
 #include "esp_main.h"
-
-#if CLI_ONLY_INFERENCE
 #include "esp_cli.h"
-#endif
 
 
 // tflite task

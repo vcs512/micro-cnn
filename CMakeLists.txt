@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.16.0)
-# list(APPEND EXTRA_COMPONENT_DIRS "lib/" "static_images/")
 list(APPEND EXTRA_COMPONENT_DIRS "lib/" "static_images/")
-# set(EXTRA_COMPONENT_DIRS static_images/ lib/)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(micro-cnn)
 
