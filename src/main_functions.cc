@@ -44,7 +44,7 @@ tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* input = nullptr;
 
 // Memory for input, output and intermediate arrays:
-constexpr int kTensorArenaSize = 100 * 1024;
+constexpr int kTensorArenaSize = 140 * 1024;
 static uint8_t *tensor_arena; //size: [kTensorArenaSize];
 }  // namespace
 
@@ -120,9 +120,9 @@ void run_inference(void *ptr) {
   //  image -> data 
   //  uint8 -> int8
   for (int i = 0; i < kNumCols * kNumRows; i++) {
-    // input->data.int8[i] = ((uint8_t *) ptr)[i] ^ 0x80;
-    input->data.int8[i] = test_img[i] ^ 0x80;
-    if (i==0) {printf("\ninput 0 = %d", input->data.int8[i]);}
+    input->data.int8[i] = ((uint8_t *) ptr)[i] ^ 0x80;
+    // input->data.int8[i] = test_img[i] ^ 0x80;
+    // if (i==0) {printf("\ninput 0 = %d", input->data.int8[i]);}
     // input->data.int8[i] = 50 - 128;
 
     // input->data.uint8[i] = ((uint8_t *) ptr)[i];
