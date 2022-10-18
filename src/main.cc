@@ -49,8 +49,9 @@ void tf_main(void) {
 extern "C" void app_main() {
 
   //                          function,      name,  stack size, -   , priority
-  xTaskCreate((TaskFunction_t)&tf_main, "tf_main",    4 * 1024, NULL, 0, NULL);
+  xTaskCreate((TaskFunction_t)&tf_main, "tf_main",    4 * 1024, NULL, 10, NULL);
   // priority>0: task watchdog warns
+  // priority=0: no warns, less processing time
 
   vTaskDelete(NULL);
 

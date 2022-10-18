@@ -21,8 +21,8 @@ limitations under the License.
 // UPDATE for new models:
 
 // Input image properties
-constexpr int kNumCols = 256;
-constexpr int kNumRows = 256;
+constexpr int kNumCols = 128;
+constexpr int kNumRows = 128;
 constexpr int kNumChannels = 1;
 
 constexpr int kMaxImageSize = kNumCols * kNumRows * kNumChannels;

@@ -85,12 +85,13 @@ void setup() {
   // tflite::AllOpsResolver micro_op_resolver;
 
   // Save code memory choosing what to include
-  static tflite::MicroMutableOpResolver<5> micro_op_resolver;
+  static tflite::MicroMutableOpResolver<6> micro_op_resolver;
   micro_op_resolver.AddConv2D();
   micro_op_resolver.AddReshape();
   micro_op_resolver.AddLogistic();
   micro_op_resolver.AddQuantize();
   micro_op_resolver.AddFullyConnected();
+  micro_op_resolver.AddMaxPool2D();
 
   // Can be added (tflite asks as runtime error):
   // micro_op_resolver.AddDepthwiseConv2D();
