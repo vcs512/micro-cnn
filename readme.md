@@ -17,19 +17,17 @@ Machine learning model setup order:
     model_settings.cc               
     model_settings.h                -- ML0. Image and model properties
     
-    person_detect_model_data.cc     -- ML1. HEX model generated (tflite)
-    person_detect_model_data.h
+    model_data.cc                   -- ML1. HEX model generated (tflite)
+    model_data.h
 
 Program flow order:
 
-    esp_main.h                      -- 0. Options of Espressif example code
+    main.cc                         -- 0. Main task
 
-    main.cc                         -- 1. Main task
-
-    main_functions.cc               -- 2. (tflite micro) Setup memory and run inference
+    main_functions.cc               -- 1. (tflite micro) Setup memory and run inference
     main_functions.h
 
-    esp_cli.c                       -- 3. Image database and inference handler
+    esp_cli.c                       -- 2. Image database and inference handler
     esp_cli.h
     
     detection_responder.cc          -- debug and PoC

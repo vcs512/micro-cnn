@@ -19,7 +19,7 @@ limitations under the License.
 
 #include "detection_responder.h"
 #include "model_settings.h"
-#include "person_detect_model_data.h"
+#include "model_data.h"
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"

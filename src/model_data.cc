@@ -19,7 +19,7 @@ limitations under the License.
 // This form is useful for compiling into a binary for devices that don't have a
 // file system.
 
-#include "person_detect_model_data.h"
+#include "model_data.h"
 
 // Keep model aligned to 8 bytes to guarantee aligned 64-bit accesses.
 // just switch between { }
