@@ -117,7 +117,7 @@ void setup() {
   // Get information about the memory area to use for the model's input.
   input = interpreter->input(0);
 
-  image_data_init();
+  // image_data_init();
 }
 
 

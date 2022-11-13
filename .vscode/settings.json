@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "queue.h": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "atomic": "cpp",
+        "cstdint": "cpp"
     }
 }

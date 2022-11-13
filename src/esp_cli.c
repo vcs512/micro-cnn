@@ -25,19 +25,20 @@
 #include "esp_main.h"
 #include "esp_cli.h"
 #include "esp_timer.h"
+#include "images.h"
 
-#define IMAGE_COUNT 2
-static uint8_t *image_database[IMAGE_COUNT];
+#define IMAGE_COUNT 10
+// static uint8_t *image_database[IMAGE_COUNT];
 
-// Assembly to refer to bin images in code memory
-extern const uint8_t image0_start[]   asm("_binary_image0_start");
-extern const uint8_t image1_start[]   asm("_binary_image1_start");
+// // Assembly to refer to bin images in code memory
+// extern const uint8_t image0_start[]   asm("_binary_image0_start");
+// extern const uint8_t image1_start[]   asm("_binary_image1_start");
 
-// Assign pointer to bin images
-static void image_database_init() {
-    image_database[0] = (uint8_t *) image0_start;
-    image_database[1] = (uint8_t *) image1_start;
-}
+// // Assign pointer to bin images
+// static void image_database_init() {
+//     image_database[0] = (uint8_t *) image0_start;
+//     image_database[1] = (uint8_t *) image1_start;
+// }
 
 // Bridge to inference function and profiler
 int inference_handler(int argc) {
@@ -54,7 +55,8 @@ int inference_handler(int argc) {
     detect_time = esp_timer_get_time();
 
     // calls tf inference (main_functions.cc)
-    run_inference((void *)image_database[image_number]);
+    // run_inference((void *)image_database[image_number]);
+    run_inference((void *)test_img[image_number]);
     
     // get profiler results
     detect_time = (esp_timer_get_time() - detect_time)/1000;
@@ -64,7 +66,7 @@ int inference_handler(int argc) {
 }
 
 
-// Inits image database
-void image_data_init() {
-    image_database_init();
-}
+// // Inits image database
+// void image_data_init() {
+//     image_database_init();
+// }

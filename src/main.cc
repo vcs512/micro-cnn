@@ -20,39 +20,47 @@ limitations under the License.
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_task_wdt.h"
 
 #include "esp_main.h"
 #include "esp_cli.h"
 
+// placeholder for other functions
+uint8_t libera = 0;
 
-// tflite task
-void tf_main(void) {
+// inference for image in database
+void tf_test(void* i) {
   
-  printf("\n======================== BEGINS TASK\n");
+  uint8_t ii = *((int *)i);
+  printf("\n========== test image %d\n", ii);
+  inference_handler(ii);
   
-  // prepare heap and database
-  setup();
-
-  // inference for images in database
-  for (uint8_t i = 0; i < 2; i++) {
-    printf("\n========== image%d\n", i);
-    inference_handler(i);
-  }
-  
-  printf("\n\n======================== FINISHED TASK =========");
-  fflush(stdout);
-
-  vTaskDelay(portMAX_DELAY);
+  libera = 1;
+  vTaskDelete(NULL);
 }
 
 // main function
 extern "C" void app_main() {
 
-  //                          function,      name,  stack size, -   , priority
-  xTaskCreate((TaskFunction_t)&tf_main, "tf_main",    4 * 1024, NULL, 10, NULL);
-  // priority>0: task watchdog warns
-  // priority=0: no warns, less processing time
+  // prepare heap and database
+  setup();
 
+  printf("\n======================== SETUP READY\n");
+
+  for (uint8_t i = 0; i < 10; i++) {
+    // avoid task watchdog
+    vTaskDelay(100);
+
+    libera = 0;
+    //                          function,      name,  stack size, parameter, priority
+    xTaskCreate((TaskFunction_t)&tf_test, "tf_test",    4 * 1024, (void *)&i, 10, NULL);  
+    
+    // integrate other functions meanwhile
+    while (libera==0) ;    
+  }
+
+  printf("\n\n======================== FINISHED TASKS =========");
   vTaskDelete(NULL);
+  
 
 }
