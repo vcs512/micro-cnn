@@ -21,7 +21,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern void run_inference(void *ptr);
+extern float run_inference(void *x_input);
 #ifdef __cplusplus
 }
 #endif

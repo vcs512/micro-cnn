@@ -13,150 +13,125 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include <stdio.h>
-
 #include "main_functions.h"
 
-#include "detection_responder.h"
-#include "model_settings.h"
-#include "model_data.h"
+// C libs.
+#include <stdio.h>
+
+// TensorFlow Lite Micro lib.
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
+// ESP-IDF libs.
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
 #include <esp_heap_caps.h>
 #include <esp_timer.h>
 #include <esp_log.h>
 #include "esp_main.h"
 
+// Project headers.
+#include "detection_responder.h"
+#include "model_settings.h"
+#include "model_data.h"
 #include "images.h"
 #include "esp_cli.h"
 
-// Globals
+// Global vars.
 namespace {
 tflite::ErrorReporter* error_reporter = nullptr;
 const tflite::Model* model = nullptr;
 tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* input = nullptr;
-
-// Memory for input, output and intermediate arrays:
+// Heap memory to allocate (input, output and intermediate arrays).
 constexpr int kTensorArenaSize = 140 * 1024;
-static uint8_t *tensor_arena; //size: [kTensorArenaSize];
-}  // namespace
+static uint8_t *tensor_arena;
+}
 
 
-
-// Get model
-// Alocate tensors in heap
-// Get interpreter class
+/*
+Get model.
+Allocate tensors in heap.
+Get interpreter class.
+*/
 void setup() {
   static tflite::MicroErrorReporter micro_error_reporter;
   error_reporter = &micro_error_reporter;
 
   // Map the model into a usable data structure.
-  // Use int8 for input/output of models (better tensorflow optimization)
+  // Use int8 for input/output of models (better tensorflow optimization).
   model = tflite::GetModel(g_model);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     TF_LITE_REPORT_ERROR(error_reporter,
-                         "Model provided is schema version %d not equal "
+                         "Model provided is schema version %d, not equal "
                          "to supported version %d.",
                          model->version(), TFLITE_SCHEMA_VERSION);
     return;
   }
 
-  // prevent heap exploding
+  // Allocate heap space.
   if (tensor_arena == NULL) {
-    tensor_arena = (uint8_t *) heap_caps_malloc(kTensorArenaSize, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    tensor_arena = (uint8_t *) heap_caps_malloc(
+      kTensorArenaSize,
+      MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
   }
+  // Prevent heap explosion.
   if (tensor_arena == NULL) {
-    printf("malloc FAILED\n -Could NOT allocate memory of %d bytes\n", kTensorArenaSize);
+    printf("! malloc FAILED\n"
+           "- Could NOT allocate memory of %d bytes\n", kTensorArenaSize);
     return;
   }
 
-
-  // // AllOpsResolver: use full tflite lib
-        // - too much code memory
-        // - no need to select operations manually
-  // tflite::AllOpsResolver micro_op_resolver;
-
-  // Save code memory choosing what to include
-  static tflite::MicroMutableOpResolver<7> micro_op_resolver;
-  micro_op_resolver.AddConv2D();
-  micro_op_resolver.AddReshape();
-  micro_op_resolver.AddLogistic();
+  // Reduce code memory usage by choosing what to include.
+  static tflite::MicroMutableOpResolver<6> micro_op_resolver;
   micro_op_resolver.AddQuantize();
-  micro_op_resolver.AddFullyConnected();
-  micro_op_resolver.AddMaxPool2D();
+  micro_op_resolver.AddConv2D();
   micro_op_resolver.AddAveragePool2D();
+  micro_op_resolver.AddReshape();
+  micro_op_resolver.AddFullyConnected();
+  micro_op_resolver.AddLogistic();
 
-  // Can be added (tflite asks as runtime error):
-  // micro_op_resolver.AddDepthwiseConv2D();
-  // micro_op_resolver.AddExpandDims();
-  // micro_op_resolver.AddAveragePool2D();
-  // micro_op_resolver.AddMaxPool2D();
-  // micro_op_resolver.AddSoftmax();
-  // micro_op_resolver.Add
-
-  // Build an interpreter to run the model
+  // Build an interpreter to run the model.
   static tflite::MicroInterpreter static_interpreter(
       model, micro_op_resolver, tensor_arena, kTensorArenaSize, error_reporter);
   interpreter = &static_interpreter;
 
-  // Allocate memory from the tensor_arena for the model's tensors
-  // Beware of heap explosion
+  // Associate the model interpreter to the heap allocated.
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
   if (allocate_status != kTfLiteOk) {
     TF_LITE_REPORT_ERROR(error_reporter, "AllocateTensors() failed");
     return;
   }
 
-  // Get information about the memory area to use for the model's input.
+  // Get the model's input.
   input = interpreter->input(0);
-
-  // image_data_init();
 }
 
-
-// Get results from an input
-void run_inference(void *ptr) {
-  //  image -> data 
-  //  uint8 -> int8
+/*
+Use model to infer results from an input.
+*/
+float run_inference(void *x_input) {
+  // Pass x_input (image) to input data, converting uint8 to int8 (^0x80).
   for (int i = 0; i < kNumCols * kNumRows; i++) {
-    input->data.int8[i] = ((uint8_t *) ptr)[i] ^ 0x80;
-    
-    // PoC entries
-    // input->data.int8[i] = test_img[i] ^ 0x80;
-    // input->data.int8[i] = 50 - 128;
-    // if (i==0) {printf("\ninput 0 = %d", input->data.int8[i]);}
-
+    input->data.int8[i] = ((uint8_t *) x_input)[i] ^ 0x80;
   }
 
-
-  // Run the model on this input and make sure it succeeds.
+  // Run the model on this input.
   if (kTfLiteOk != interpreter->Invoke()) {
     error_reporter->Report("Invoke failed.");
   }
 
   TfLiteTensor* output = interpreter->output(0);
 
-  // // Dimensions:
-  // printf("\n== input size: %d", input->bytes);
-  // printf("\n=== output size: %d  ", output->dims->size);
-
-  // Get inference results:
+  // Get model output results.
   int8_t result_score = output->data.int8[0];
 
-  // float to show in terminal:
+  // Scale output to float.
   float result_score_f =
       (result_score - output->params.zero_point) * output->params.scale;
 
-  printf("\n== OUTPUT = %f %%", result_score_f*100);
-
-  // implement output
-  // RespondToDetection(error_reporter, result_score_f);
+  return result_score_f;
 }

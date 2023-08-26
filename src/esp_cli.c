@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+// ESP-IDF libs.
 #include <stdio.h>
 #include <string.h>
 #include <esp_log.h>
@@ -22,51 +24,37 @@
 #include <freertos/queue.h>
 #include <driver/uart.h>
 
+// Project code headers.
 #include "esp_main.h"
 #include "esp_cli.h"
 #include "esp_timer.h"
 #include "images.h"
 
+// Defines.
 #define IMAGE_COUNT 10
-// static uint8_t *image_database[IMAGE_COUNT];
 
-// // Assembly to refer to bin images in code memory
-// extern const uint8_t image0_start[]   asm("_binary_image0_start");
-// extern const uint8_t image1_start[]   asm("_binary_image1_start");
+/*
+Bridge to inference function and profiler
+*/
+int inference_handler(int img_idx) {
+  // Check index boundaries.
+  if((img_idx < 0) || (img_idx >= IMAGE_COUNT)) {
+    printf("! Selected INVALID index for image");
+    return -1;
+  }
 
-// // Assign pointer to bin images
-// static void image_database_init() {
-//     image_database[0] = (uint8_t *) image0_start;
-//     image_database[1] = (uint8_t *) image1_start;
-// }
+  // Time measurement.
+  unsigned inference_time;
+  inference_time = esp_timer_get_time();
 
-// Bridge to inference function and profiler
-int inference_handler(int argc) {
-
-    int image_number = argc;
-
-    if((image_number < 0) || (image_number >= IMAGE_COUNT)) {
-        printf("RETURNING: Selected invalid image");
-        return -1;
-    }
-
-
-    unsigned detect_time;
-    detect_time = esp_timer_get_time();
-
-    // calls tf inference (main_functions.cc)
-    // run_inference((void *)image_database[image_number]);
-    run_inference((void *)test_img[image_number]);
+  // Start indeference for image.
+  float result_score_f;
+  result_score_f = run_inference((void *)test_img[img_idx]);
+  printf("\n-- OUTPUT = %f %%", result_score_f*100);
     
-    // get profiler results
-    detect_time = (esp_timer_get_time() - detect_time)/1000;
-    printf("\nTime required for the inference is %u ms \n\n", detect_time);
+  // Time profiler results.
+  inference_time = (esp_timer_get_time() - inference_time) / 1000;
+  printf("\n-- Time for inference = %u ms \n", inference_time);
 
-    return 0;
+  return 0;
 }
-
-
-// // Inits image database
-// void image_data_init() {
-//     image_database_init();
-// }

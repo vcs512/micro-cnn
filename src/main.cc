@@ -13,8 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+// C libs.
 #include <stdio.h>
 
+// ESP-IDF libs.
 #include "main_functions.h"
 #include "esp_log.h"
 #include "esp_system.h"
@@ -22,45 +24,48 @@ limitations under the License.
 #include "freertos/task.h"
 #include "esp_task_wdt.h"
 
+// Project code headers.
 #include "esp_main.h"
 #include "esp_cli.h"
 
-// placeholder for other functions
-uint8_t libera = 0;
 
-// inference for image in database
-void tf_test(void* i) {
+/*
+Infer class for image in memory database with index "img_idx_arg".
+*/
+void tf_test(void* img_idx_arg) {
+  // Loop through images database and infer them.
+  for (int idx = 0; idx < 10; idx++){
+    // Delay to ping task watchdog.
+    vTaskDelay(200);
+    // Start inference.
+    printf("\n- Image %d", idx);
+    inference_handler(idx);
+  }
   
-  uint8_t ii = *((int *)i);
-  printf("\n========== test image %d\n", ii);
-  inference_handler(ii);
-  
-  libera = 1;
   vTaskDelete(NULL);
 }
 
-// main function
+
+/*
+Main function.
+*/
 extern "C" void app_main() {
-
-  // prepare heap and database
+  // Load model, preparing heap.
   setup();
+  printf("\n- SETUP READY\n");
 
-  printf("\n======================== SETUP READY\n");
+  // Thread (task) to infer images in database.
+  xTaskCreate(// function.
+              (TaskFunction_t)&tf_test,
+              // task name.
+              "tf_test",
+              // stack size.
+              4 * 1024,
+              // arguments.
+              (void *)0,
+              // priority.
+              10,
+              NULL);  
 
-  for (uint8_t i = 0; i < 10; i++) {
-    // avoid task watchdog
-    vTaskDelay(100);
-
-    libera = 0;
-    //                          function,      name,  stack size, parameter, priority
-    xTaskCreate((TaskFunction_t)&tf_test, "tf_test",    4 * 1024, (void *)&i, 10, NULL);  
-    
-    // integrate other functions meanwhile
-    while (libera==0) ;    
-  }
-
-  printf("\n\n======================== FINISHED TASKS =========");
   vTaskDelete(NULL);
-  
-
 }

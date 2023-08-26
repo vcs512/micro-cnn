@@ -21,12 +21,14 @@ limitations under the License.
 extern "C" {
 #endif
 
-// Initializes all data needed for the example.
-// Alocates heap
+
+/*
+Get model.
+Allocate tensors in heap.
+Get interpreter class.
+*/
 void setup();
 
-// To implement: receive images continuously
-void loop();
 
 #ifdef __cplusplus
 }

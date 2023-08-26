@@ -1,18 +1,18 @@
-# Visual quality inspection using Machine Learning in ESP32 (TM)
+# Visual quality inspection using Machine Learning in ESP32 (TM) - vcs512
 
-## Project architecture
+# Project architecture
 
-### platformio.ini
+## platformio.ini
 Configure PlatformIO:
 - Serial monitor speed
 - Embedded binary images
 
-### CMakeLists.txt
+## CMakeLists.txt
 - Include and components paths
 
 
-### src/
-Machine learning model setup order:
+## src/
+### Machine learning model setup order:
 
     model_settings.cc               
     model_settings.h                -- ML0. Image and model properties
@@ -20,24 +20,25 @@ Machine learning model setup order:
     model_data.cc                   -- ML1. HEX model generated (tflite)
     model_data.h
 
-Program flow order:
+### Images database for inferences:
+
+    images.cc                       -- Images for PoC inferences.
+    images.h
+
+### Program flow order:
 
     main.cc                         -- 0. Main task
 
     main_functions.cc               -- 1. (tflite micro) Setup memory and run inference
     main_functions.h
 
-    esp_cli.c                       -- 2. Image database and inference handler
+    esp_cli.c                       -- 2. Inference handler
     esp_cli.h
-    
-    detection_responder.cc          -- debug and PoC
-    detection_responder.h
-
-
-### static_images
-Binary archives to test the convolutional neural network
 
 # References
+Useful ML pipeline for IoT and MCU devices:
+- https://github.com/vcs512/ML_IoT_pipeline
+
 Base code:
 - https://github.com/espressif/tflite-micro-esp-examples
 
