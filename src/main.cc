@@ -28,13 +28,16 @@ limitations under the License.
 #include "esp_main.h"
 #include "esp_cli.h"
 
+// Defines.
+#define IMAGE_COUNT 36
+
 
 /*
 Infer class for image in memory database with index "img_idx_arg".
 */
 void tf_test(void* img_idx_arg) {
   // Loop through images database and infer them.
-  for (int idx = 0; idx < 10; idx++){
+  for (int idx = 0; idx < IMAGE_COUNT; idx++){
     // Delay to ping task watchdog.
     vTaskDelay(200);
     // Start inference.

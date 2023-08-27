@@ -30,19 +30,10 @@
 #include "esp_timer.h"
 #include "images.h"
 
-// Defines.
-#define IMAGE_COUNT 10
-
 /*
 Bridge to inference function and profiler
 */
 int inference_handler(int img_idx) {
-  // Check index boundaries.
-  if((img_idx < 0) || (img_idx >= IMAGE_COUNT)) {
-    printf("! Selected INVALID index for image");
-    return -1;
-  }
-
   // Time measurement.
   unsigned inference_time;
   inference_time = esp_timer_get_time();
