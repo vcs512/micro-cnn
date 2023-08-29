@@ -13,14 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_MAIN_FUNCTIONS_H_
-#define TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_MAIN_FUNCTIONS_H_
+#ifndef MAIN_FUNCTIONS_H_
+#define MAIN_FUNCTIONS_H_
 
-// Expose a C friendly interface for main functions.
+// Expose a C interface for main functions.
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /*
 Get model.
@@ -29,9 +28,8 @@ Get interpreter class.
 */
 void setup();
 
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_MAIN_FUNCTIONS_H_
+#endif  // MAIN_FUNCTIONS_H_

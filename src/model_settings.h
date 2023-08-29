@@ -13,24 +13,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_MODEL_SETTINGS_H_
-#define TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_MODEL_SETTINGS_H_
+#ifndef MODEL_SETTINGS_H_
+#define MODEL_SETTINGS_H_
 
-// constant expressions: allocated in fixed-sized arrays
-
-// UPDATE for new models:
-
-// Input image properties
+// UPDATE for new models.
+// constant expressions == allocated in fixed-sized arrays.
+// Input image properties.
 constexpr int kNumCols = 128;
 constexpr int kNumRows = 128;
 constexpr int kNumChannels = 1;
 
 constexpr int kMaxImageSize = kNumCols * kNumRows * kNumChannels;
 
-// ML model properties
+// ML model properties.
 constexpr int kCategoryCount = 2;
 constexpr int kClass_1 = 1;
 constexpr int kClass_0 = 0;
 extern const char* kCategoryLabels[kCategoryCount];
 
-#endif  // TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_MODEL_SETTINGS_H_
+#endif  // MODEL_SETTINGS_H_

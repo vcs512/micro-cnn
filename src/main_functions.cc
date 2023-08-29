@@ -34,7 +34,6 @@ limitations under the License.
 #include "esp_main.h"
 
 // Project headers.
-#include "detection_responder.h"
 #include "model_settings.h"
 #include "model_data.h"
 #include "images.h"
@@ -63,7 +62,7 @@ void setup() {
 
   // Map the model into a usable data structure.
   // Use int8 for input/output of models (better tensorflow optimization).
-  model = tflite::GetModel(g_model);
+  model = tflite::GetModel(cnn_model);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     TF_LITE_REPORT_ERROR(error_reporter,
                          "Model provided is schema version %d, not equal "
