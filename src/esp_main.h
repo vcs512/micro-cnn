@@ -12,16 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// // Enable this to do inference on embedded images
-// #define CLI_ONLY_INFERENCE 1
-
-// // Enable this to get cpu stats
-// #define COLLECT_CPU_STATS 0
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 extern float run_inference(void *x_input);
+
 #ifdef __cplusplus
 }
 #endif

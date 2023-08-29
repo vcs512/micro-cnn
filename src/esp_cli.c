@@ -31,7 +31,7 @@
 #include "images.h"
 
 /*
-Bridge to inference function and profiler
+Bridge to inference function and profiler.
 */
 int inference_handler(int img_idx) {
   // Time measurement.

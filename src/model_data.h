@@ -18,10 +18,10 @@ limitations under the License.
 // don't have a file system. It was created using the command:
 // xxd -i person_detect.tflite > person_detect_model_data.cc
 
-#ifndef TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_PERSON_DETECT_MODEL_DATA_H_
-#define TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_PERSON_DETECT_MODEL_DATA_H_
+#ifndef MODEL_DATA_H_
+#define MODEL_DATA_H_
 
-extern const unsigned char g_model[];
-extern const int g_model_len;
+extern const unsigned char cnn_model[];
+extern const int cnn_model_len;
 
-#endif  // TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_PERSON_DETECT_MODEL_DATA_H_
+#endif  // MODEL_DATA_H_

@@ -1,8 +1,8 @@
-#ifndef TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_IMAGES_H_
-#define TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_IMAGES_H_
+#ifndef IMAGES_H_
+#define IMAGES_H_
 
 #include <freertos/FreeRTOS.h>
 
 extern const unsigned char* test_img[];
 
-#endif  // TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_IMAGES_H_
+#endif  // IMAGES_H_
