@@ -34,7 +34,6 @@ limitations under the License.
 #include "esp_main.h"
 
 // Project headers.
-#include "detection_responder.h"
 #include "model_settings.h"
 #include "model_data.h"
 #include "images.h"
