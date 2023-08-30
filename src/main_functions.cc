@@ -46,7 +46,7 @@ const tflite::Model* model = nullptr;
 tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* input = nullptr;
 // Heap memory to allocate (input, output and intermediate arrays).
-constexpr int kTensorArenaSize = 140 * 1024;
+constexpr int kTensorArenaSize = 60 * 1024;
 static uint8_t *tensor_arena;
 }
 
